@@ -2,6 +2,11 @@ import Cart from "../models/cartModel.js";
 import Product from "../models/productModel.js";
 
 class CartController {
+  constructor() {
+    this.createCart = this.createCart.bind(this);
+    this.updateCart = this.updateCart.bind(this);
+  }
+
   // GET /carts
   async getAllCarts(req, res) {
     try {
@@ -62,14 +67,15 @@ class CartController {
   async createCart(req, res) {
     try {
       const { quantity, user, product } = req.body;
-      const cart = await Cart.findOne({ user });
+      const existingCart = await Cart.findOne({ user });
 
-      if (cart) {
-        return res.status(400).json({
-          message: "Cart already exists. You can only update the cart.",
-        });
+      if (existingCart) {
+        // Nếu cart đã tồn tại, gọi hàm updateCart để thêm sản phẩm
+        req.params.userId = user; // Set userId param for updateCart
+        return this.updateCart(req, res);
       }
 
+      // Nếu cart chưa tồn tại, tạo mới
       const newCart = await Cart.create({
         user,
         products: [
@@ -91,40 +97,29 @@ class CartController {
     }
   }
 
-  // PUT /carts/:id
+  // PUT /carts/:userId
   async updateCart(req, res) {
     try {
-      const { quantity, user, product } = req.body;
-      const cart = await Cart.findOne({ user });
+      const { quantity, product } = req.body;
+      const cart = await Cart.findOne({ user: req.params.userId });
 
       if (!cart) {
         return res.status(404).json({ message: "Cart Not Found" });
       }
 
-      const productExisted = cart.products.find(
+      const productIndex = cart.products.findIndex(
         (item) => item.product.toString() === product
       );
 
-      let newProductCart = [];
-      if (productExisted) {
-        newProductCart = cart.products.map((item) =>
-          item.product.toString() === product
-            ? { product, quantity: item.quantity + quantity }
-            : item
-        );
+      if (productIndex >= 0) {
+        // Update existing product quantity
+        cart.products[productIndex].quantity += quantity;
       } else {
-        newProductCart = [...cart.products, { product, quantity }];
+        // Add new product to cart
+        cart.products.push({ product, quantity });
       }
 
-      const updatedCart = await Cart.findByIdAndUpdate(
-        cart._id,
-        { products: newProductCart },
-        { new: true }
-      );
-
-      if (!updatedCart) {
-        return res.status(404).json({ message: "Cart Not Found" });
-      }
+      const updatedCart = await cart.save();
 
       res.status(200).json({
         message: "Update Cart Successful",
@@ -147,7 +142,9 @@ class CartController {
         return res.status(404).json({ message: "Cart Not Found" });
       }
 
-      const newProductCart = cart.products.filter((item) => item.product != id);
+      const newProductCart = cart.products.filter(
+        (item) => item.product.toString() !== id
+      );
 
       const updatedCart = await Cart.findByIdAndUpdate(
         cart._id,
