@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import productRouter from "./src/routes/product.js";
 import categoryRouter from "./src/routes/category.js";
 import userRouter from "./src/routes/user.js";
+import cartRouter from "./src/routes/carts.js";
+import orderRouter from "./src/routes/orders.js";
 
 // Tạo ứng dụng Express
 const app = express();
@@ -36,6 +38,9 @@ app.use(categoryRouter);
 
 // Sử dụng các route được định nghĩa trong userRouter cho ứng dụng
 app.use(userRouter);
+
+app.use(cartRouter);
+app.use(orderRouter);
 
 // Kết nối tới MongoDB sử dụng URL từ biến môi trường DB_URL
 mongoose
