@@ -52,9 +52,9 @@ class CartController {
         },
       });
 
-      if (!cart) {
-        return res.status(404).json({ message: "Cart Not Found" });
-      }
+      // if (!cart) {
+      //   return res.status(404).json({ message: "Cart Not Found" });
+      // }
       res.status(200).json(cart);
     } catch (error) {
       return res.status(400).json({
