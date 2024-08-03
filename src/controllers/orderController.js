@@ -6,7 +6,10 @@ class OrderController {
   async getAllOrders(req, res) {
     try {
       const orders = await Order.find();
-      res.status(200).json(orders);
+      return res.status(200).json({
+        message: "Lấy tất cả đơn hàng thành công",
+        data: orders,
+      });
     } catch (error) {
       return res.status(400).json({
         message: error.message,
@@ -22,7 +25,10 @@ class OrderController {
       if (!order) {
         return res.status(404).json({ message: "Order Not Found" });
       }
-      res.status(200).json(order);
+      return res.status(200).json({
+        message: "Lấy chi tiết đơn hàng thành công",
+        data: order,
+      });
     } catch (error) {
       return res.status(400).json({
         message: error.message,
